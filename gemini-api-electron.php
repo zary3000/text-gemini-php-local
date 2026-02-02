@@ -117,16 +117,16 @@ $url = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateCon
 // Build conversation contents from history
 $contents = [];
 
-// If course context exists, prepend it to the FIRST message in history
-if (!empty($courseContext) && count($history) > 0) {
+// If course context exists and this is the first message, add it
+if (!empty($courseContext) && count($history) === 1) {
     // Add course context with the first user message
-    $firstMsg = array_shift($history); // Get and remove first message
     $contents[] = [
         'role' => 'user',
         'parts' => [
-            ['text' => $courseContext . $firstMsg['text']]
+            ['text' => $courseContext . "\n\n" . $history[0]['text']]
         ]
     ];
+    array_shift($history); // Remove the first message since we already added it with context
 }
 
 // Add remaining history
