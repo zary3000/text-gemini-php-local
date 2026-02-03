@@ -140,7 +140,7 @@ function createChatWindow() {
         icon: path.join(__dirname, 'ifen_logo_masc_2.png')
     });
 
-    chatWindow.loadURL('http://localhost:8000/gemini-chat-updated.html');
+    chatWindow.loadURL('http://localhost:8000/gemini-chat.html');
 
     // Handle window close
     chatWindow.on('close', () => {
