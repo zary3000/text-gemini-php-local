@@ -14,8 +14,8 @@ function startServer() {
     // Serve static files
     serverApp.use(express.static(__dirname));
 
-    // Handle POST requests to gemini-api.php
-    serverApp.post('/gemini-api.php', express.json(), async (req, res) => {
+    // Handle POST requests to unified-api.php
+    serverApp.post('/unified-api.php', express.json(), async (req, res) => {
         const { exec } = require('child_process');
         const tempFile = path.join(__dirname, 'temp-request.json');
         const fs = require('fs');
@@ -24,7 +24,7 @@ function startServer() {
         fs.writeFileSync(tempFile, JSON.stringify(req.body));
         
         // Execute PHP script
-        exec(`php gemini-api-electron.php "${tempFile}"`, (error, stdout, stderr) => {
+        exec(`php unified-api-electron.php "${tempFile}"`, (error, stdout, stderr) => {
             if (error) {
                 res.json({ success: false, error: stderr || error.message });
                 return;
@@ -42,6 +42,30 @@ function startServer() {
                 fs.unlinkSync(tempFile);
             }
         });
+    });
+
+    // Handle POST requests to clear-history.php
+    serverApp.post('/clear-history.php', express.json(), async (req, res) => {
+        const fs = require('fs');
+        const provider = req.body.provider;
+        
+        if (!provider) {
+            res.json({ success: false, error: 'No provider specified' });
+            return;
+        }
+        
+        const historyFile = path.join(__dirname, `conversation_history_${provider}.txt`);
+        
+        if (fs.existsSync(historyFile)) {
+            try {
+                fs.unlinkSync(historyFile);
+                res.json({ success: true, message: 'History cleared successfully' });
+            } catch (err) {
+                res.json({ success: false, error: 'Failed to clear history' });
+            }
+        } else {
+            res.json({ success: true, message: 'No history to clear' });
+        }
     });
 
     phpServer = serverApp.listen(port, () => {
@@ -116,7 +140,7 @@ function createChatWindow() {
         icon: path.join(__dirname, 'ifen_logo_masc_2.png')
     });
 
-    chatWindow.loadURL('http://localhost:8000/gemini-chat.html');
+    chatWindow.loadURL('http://localhost:8000/gemini-chat-updated.html');
 
     // Handle window close
     chatWindow.on('close', () => {
@@ -126,17 +150,23 @@ function createChatWindow() {
 
 // Start server when app is ready
 app.whenReady().then(() => {
-    // Clear conversation history from previous session
-    const historyFile = path.join(__dirname, 'conversation_history.txt');
+    // Clear conversation history from previous session for both providers
     const fs = require('fs');
-    if (fs.existsSync(historyFile)) {
-        try {
-            fs.unlinkSync(historyFile);
-            console.log('Previous conversation history cleared');
-        } catch (err) {
-            console.error('Failed to clear conversation history:', err);
+    const historyFiles = [
+        path.join(__dirname, 'conversation_history_openai.txt'),
+        path.join(__dirname, 'conversation_history_gemini.txt')
+    ];
+    
+    historyFiles.forEach(file => {
+        if (fs.existsSync(file)) {
+            try {
+                fs.unlinkSync(file);
+                console.log(`Cleared history: ${path.basename(file)}`);
+            } catch (err) {
+                console.error(`Failed to clear ${path.basename(file)}:`, err);
+            }
         }
-    }
+    });
     
     startServer();
     createFloatingIcon();
