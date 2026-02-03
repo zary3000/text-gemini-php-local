@@ -126,6 +126,18 @@ function createChatWindow() {
 
 // Start server when app is ready
 app.whenReady().then(() => {
+    // Clear conversation history from previous session
+    const historyFile = path.join(__dirname, 'conversation_history.txt');
+    const fs = require('fs');
+    if (fs.existsSync(historyFile)) {
+        try {
+            fs.unlinkSync(historyFile);
+            console.log('Previous conversation history cleared');
+        } catch (err) {
+            console.error('Failed to clear conversation history:', err);
+        }
+    }
+    
     startServer();
     createFloatingIcon();
 
