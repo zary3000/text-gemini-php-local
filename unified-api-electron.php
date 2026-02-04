@@ -149,8 +149,9 @@ function callOpenAI($apiKey, $history, $courseContext) {
     // Build messages array for OpenAI
     $messages = [];
     
-    // Add course context as system message if available and this is the first message
-    if (!empty($courseContext) && count($history) === 1) {
+    // ALWAYS add course context as system message if available
+    // This ensures the AI never "forgets" the course information
+    if (!empty($courseContext)) {
         $messages[] = [
             'role' => 'system',
             'content' => $courseContext
@@ -245,16 +246,17 @@ function callGemini($apiKey, $history, $courseContext) {
     // Build contents array for Gemini
     $contents = [];
     
-    // If course context exists and this is the first message, add it
-    if (!empty($courseContext) && count($history) === 1) {
+    // ALWAYS prepend course context to EVERY first user message in the history
+    // This ensures Gemini never "forgets" the course information
+    if (!empty($courseContext) && !empty($history)) {
         // Add course context with the first user message
+        $firstMsg = array_shift($history); // Remove first message from history
         $contents[] = [
             'role' => 'user',
             'parts' => [
-                ['text' => $courseContext . "\n\n" . $history[0]['text']]
+                ['text' => $courseContext . "\n\n" . $firstMsg['text']]
             ]
         ];
-        array_shift($history); // Remove the first message since we already added it with context
     }
     
     // Add remaining history
