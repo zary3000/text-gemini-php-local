@@ -14,8 +14,8 @@ function startServer() {
     // Serve static files
     serverApp.use(express.static(__dirname));
 
-    // Handle POST requests to unified-api.php
-    serverApp.post('/unified-api.php', express.json(), async (req, res) => {
+    // Handle POST requests to gemini-api.php
+    serverApp.post('/gemini-api.php', express.json(), async (req, res) => {
         const { exec } = require('child_process');
         const tempFile = path.join(__dirname, 'temp-request.json');
         const fs = require('fs');
@@ -42,30 +42,6 @@ function startServer() {
                 fs.unlinkSync(tempFile);
             }
         });
-    });
-
-    // Handle POST requests to clear-history.php
-    serverApp.post('/clear-history.php', express.json(), async (req, res) => {
-        const fs = require('fs');
-        const provider = req.body.provider;
-        
-        if (!provider) {
-            res.json({ success: false, error: 'No provider specified' });
-            return;
-        }
-        
-        const historyFile = path.join(__dirname, `conversation_history_${provider}.txt`);
-        
-        if (fs.existsSync(historyFile)) {
-            try {
-                fs.unlinkSync(historyFile);
-                res.json({ success: true, message: 'History cleared successfully' });
-            } catch (err) {
-                res.json({ success: false, error: 'Failed to clear history' });
-            }
-        } else {
-            res.json({ success: true, message: 'No history to clear' });
-        }
     });
 
     phpServer = serverApp.listen(port, () => {
@@ -98,7 +74,7 @@ function createFloatingIcon() {
         }
     });
 
-    // Load the HTML file from disk instead of inline
+    // Load the HTML file from disk
     const iconHTMLPath = path.join(__dirname, 'floating-icon.html');
     floatingIcon.loadFile(iconHTMLPath);
     
@@ -127,7 +103,7 @@ function createChatWindow() {
 
     chatWindow = new BrowserWindow({
         width: 450,
-        height: 700, // Increased from 600 to give more space for input area
+        height: 700,
         x: width - 460, // Position from right edge
         y: 20, // Position 20px from top
         frame: true,
@@ -150,23 +126,17 @@ function createChatWindow() {
 
 // Start server when app is ready
 app.whenReady().then(() => {
-    // Clear conversation history from previous session for both providers
+    // Clear conversation history from previous session
+    const historyFile = path.join(__dirname, 'conversation_history.txt');
     const fs = require('fs');
-    const historyFiles = [
-        path.join(__dirname, 'conversation_history_openai.txt'),
-        path.join(__dirname, 'conversation_history_gemini.txt')
-    ];
-    
-    historyFiles.forEach(file => {
-        if (fs.existsSync(file)) {
-            try {
-                fs.unlinkSync(file);
-                console.log(`Cleared history: ${path.basename(file)}`);
-            } catch (err) {
-                console.error(`Failed to clear ${path.basename(file)}:`, err);
-            }
+    if (fs.existsSync(historyFile)) {
+        try {
+            fs.unlinkSync(historyFile);
+            console.log('Previous conversation history cleared');
+        } catch (err) {
+            console.error('Failed to clear conversation history:', err);
         }
-    });
+    }
     
     startServer();
     createFloatingIcon();
