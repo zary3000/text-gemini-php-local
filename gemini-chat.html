@@ -42,42 +42,6 @@
             text-align: center;
             font-size: 24px;
             font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-title {
-            flex: 1;
-            text-align: center;
-        }
-
-        .provider-selector {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .provider-btn {
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .provider-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .provider-btn.active {
-            background: white;
-            color: #5a4d7a;
-            border-color: white;
-            font-weight: bold;
         }
 
         .chat-messages {
@@ -208,19 +172,14 @@
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <div class="provider-selector">
-                <button class="provider-btn active" data-provider="openai">OpenAI</button>
-                <button class="provider-btn" data-provider="gemini">Gemini</button>
-            </div>
-            <div class="header-title">💬 Jimmini Chat</div>
-            <div style="width: 180px;"></div> <!-- Spacer for centering -->
+            💬 Jimmini Chat
         </div>
         
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant">
                 <span class="message-label">Jimmini</span>
                 <div class="message-content">
-                    Hello! I'm Jimmini powered by OpenAI. Ask me anything!
+                    Hello! I'm Jimmini. Ask me anything!
                 </div>
             </div>
         </div>
@@ -245,40 +204,6 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         const loadingIndicator = document.getElementById('loadingIndicator');
-        const providerBtns = document.querySelectorAll('.provider-btn');
-        
-        let currentProvider = 'openai'; // Default to OpenAI
-
-        // Provider selection
-        providerBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const provider = btn.dataset.provider;
-                
-                // Update active state
-                providerBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Update current provider
-                currentProvider = provider;
-                
-                // Clear chat and show welcome message
-                clearChat();
-                const providerName = provider === 'openai' ? 'OpenAI' : 'Gemini';
-                addMessage('assistant', `Hello! I'm Jimmini powered by ${providerName}. Ask me anything!`);
-            });
-        });
-
-        function clearChat() {
-            chatMessages.innerHTML = '';
-            // Also clear server-side history
-            fetch('clear-history.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ provider: currentProvider })
-            }).catch(err => console.error('Failed to clear history:', err));
-        }
 
         // Send message when button is clicked
         sendBtn.addEventListener('click', sendMessage);
@@ -307,16 +232,13 @@
             loadingIndicator.classList.add('active');
 
             try {
-                // Send request to unified API endpoint
-                const response = await fetch('unified-api.php', {
+                // Send request to PHP backend
+                const response = await fetch('gemini-api.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ 
-                        message: message,
-                        provider: currentProvider
-                    })
+                    body: JSON.stringify({ message: message })
                 });
 
                 const data = await response.json();
