@@ -15,7 +15,7 @@ function startServer() {
     serverApp.use(express.static(__dirname));
 
     // Handle POST requests to gemini-api.php
-    serverApp.post('/gemini-api.php', express.json(), async (req, res) => {
+    serverApp.post('/jimmini-api.php', express.json(), async (req, res) => {
         const { exec } = require('child_process');
         const tempFile = path.join(__dirname, 'temp-request.json');
         const fs = require('fs');
@@ -24,7 +24,7 @@ function startServer() {
         fs.writeFileSync(tempFile, JSON.stringify(req.body));
         
         // Execute PHP script
-        exec(`php unified-api-electron.php "${tempFile}"`, (error, stdout, stderr) => {
+        exec(`php jimmini-api-electron.php "${tempFile}"`, (error, stdout, stderr) => {
             if (error) {
                 res.json({ success: false, error: stderr || error.message });
                 return;
