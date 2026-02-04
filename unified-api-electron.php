@@ -6,7 +6,7 @@
 
 // Configuration
 $geminiApiKey = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with your Gemini API key
-$model = 'gemini-2.0-flash-exp';
+$model = 'gemini-2.0-flash-exp';  // gemini-2.5-flash
 $courseContextFile = __DIR__ . '/course_context.txt'; // Course information in plain text
 
 // Get input from file
