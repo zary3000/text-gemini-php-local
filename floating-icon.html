@@ -7,12 +7,12 @@
             padding: 0;
             overflow: hidden;
             background: transparent;
-            width: 75px;
-            height: 75px;
+            width: 150px;
+            height: 150px;
         }
         .icon-container {
-            width: 75px;
-            height: 75px;
+            width: 150px;
+            height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -24,20 +24,24 @@
         .icon-container:hover {
             transform: scale(1.1);
         }
-        img {
+        img, video {
             width: 100%;
             height: 100%;
             pointer-events: none;
             transition: opacity 0.2s ease;
             -webkit-app-region: no-drag;
+            object-fit: contain;
         }
-        .mascot-img {
+        video {
+            background: transparent;
+        }
+        .mascot-img, .mascot-video {
             position: absolute;
             top: 0;
             left: 0;
             opacity: 0;
         }
-        .mascot-img.active {
+        .mascot-img.active, .mascot-video.active {
             opacity: 1;
         }
         .click-area {
@@ -56,10 +60,16 @@
     <div class="icon-container">
         <!-- Main static image -->
         <img src="Ifen_logo_masc_1.png" alt="Mascot" class="mascot-img active" id="mainImg">
-        <!-- Periodic animation GIF -->
-        <img src="animation_1.gif" alt="Animation 1" class="mascot-img" id="animation1">
-        <!-- Click animation GIF -->
-        <img src="animation_2.gif" alt="Animation 2" class="mascot-img" id="animation2">
+        <!-- Click animation - supports both WebM and MP4 -->
+        <video class="mascot-video" id="animation1" muted playsinline>
+            <source src="animation_1.webm" type="video/webm">
+            <source src="animation_1.mp4" type="video/mp4">
+        </video>
+        <!-- Periodic/random animation - supports both WebM and MP4 -->
+        <video class="mascot-video" id="animation2" muted playsinline>
+            <source src="animation_2.webm" type="video/webm">
+            <source src="animation_2.mp4" type="video/mp4">
+        </video>
         <div class="click-area" id="clickArea"></div>
     </div>
     <script>
@@ -73,40 +83,38 @@
         // ==========================================
         // ANIMATION SETTINGS
         // ==========================================
-        const ANIMATION1_DURATION = 2000; // How long animation_1 plays (in ms)
-        const ANIMATION1_MIN_INTERVAL = 10000; // Minimum time between random animations (10 seconds)
-        const ANIMATION1_MAX_INTERVAL = 30000; // Maximum time between random animations (30 seconds)
-        const ANIMATION2_DURATION = 2000; // How long animation_2 plays when clicked (in ms)
+        const ANIMATION2_MIN_INTERVAL = 10000; // Minimum time between random animations (10 seconds)
+        const ANIMATION2_MAX_INTERVAL = 30000; // Maximum time between random animations (30 seconds)
         // ==========================================
 
         let isAnimating = false;
         let randomAnimationTimeout = null;
 
-        // Function to show only one image
-        function showOnly(imgElement) {
+        // Function to show only one element
+        function showOnly(element) {
             mainImg.classList.remove('active');
             animation1.classList.remove('active');
             animation2.classList.remove('active');
-            imgElement.classList.add('active');
+            element.classList.add('active');
         }
 
-        // Play periodic/random animation (animation_1.gif)
+        // Play periodic/random animation (animation_2)
         function playRandomAnimation() {
             if (isAnimating) return;
             
             isAnimating = true;
-            showOnly(animation1);
+            showOnly(animation2);
 
-            // Reset the GIF by reloading it
-            const src = animation1.src;
-            animation1.src = '';
-            animation1.src = src;
+            // Reset and play the video
+            animation2.currentTime = 0;
+            animation2.play();
 
-            setTimeout(() => {
+            // Wait for video to end, then return to main image
+            animation2.onended = () => {
                 showOnly(mainImg);
                 isAnimating = false;
                 scheduleNextRandomAnimation();
-            }, ANIMATION1_DURATION);
+            };
         }
 
         // Schedule the next random animation
@@ -115,11 +123,11 @@
                 clearTimeout(randomAnimationTimeout);
             }
             
-            const delay = Math.random() * (ANIMATION1_MAX_INTERVAL - ANIMATION1_MIN_INTERVAL) + ANIMATION1_MIN_INTERVAL;
+            const delay = Math.random() * (ANIMATION2_MAX_INTERVAL - ANIMATION2_MIN_INTERVAL) + ANIMATION2_MIN_INTERVAL;
             randomAnimationTimeout = setTimeout(playRandomAnimation, delay);
         }
 
-        // Play click animation (animation_2.gif)
+        // Play click animation (animation_1)
         function playClickAnimation() {
             if (isAnimating) return;
             
@@ -130,18 +138,18 @@
                 clearTimeout(randomAnimationTimeout);
             }
 
-            showOnly(animation2);
+            showOnly(animation1);
 
-            // Reset the GIF by reloading it
-            const src = animation2.src;
-            animation2.src = '';
-            animation2.src = src;
+            // Reset and play the video
+            animation1.currentTime = 0;
+            animation1.play();
 
-            setTimeout(() => {
+            // Wait for video to end, then return to main image
+            animation1.onended = () => {
                 showOnly(mainImg);
                 isAnimating = false;
                 scheduleNextRandomAnimation();
-            }, ANIMATION2_DURATION);
+            };
         }
 
         // Click handler
