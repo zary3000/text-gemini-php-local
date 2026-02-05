@@ -14,7 +14,7 @@ function startServer() {
     // Serve static files
     serverApp.use(express.static(__dirname));
 
-    // Handle POST requests to gemini-api.php
+    // Handle POST requests to jimmini-api.php
     serverApp.post('/jimmini-api.php', express.json(), async (req, res) => {
         const { exec } = require('child_process');
         const tempFile = path.join(__dirname, 'temp-request.json');
@@ -59,8 +59,8 @@ function createFloatingIcon() {
     const iconBottomOffset = 125; // Distance from bottom edge (decrease to move down, increase to move up)
 
     floatingIcon = new BrowserWindow({
-        width: 75,
-        height: 75,
+        width: 150,
+        height: 150,
         x: width - iconRightOffset,   // Horizontal position
         y: height - iconBottomOffset, // Vertical position
         transparent: true,
