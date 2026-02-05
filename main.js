@@ -20,11 +20,21 @@ function startServer() {
         const tempFile = path.join(__dirname, 'temp-request.json');
         const fs = require('fs');
         
+        // Notify floating icon to start thinking animation
+        if (floatingIcon && !floatingIcon.isDestroyed()) {
+            floatingIcon.webContents.send('start-thinking');
+        }
+        
         // Write request to temp file
         fs.writeFileSync(tempFile, JSON.stringify(req.body));
         
         // Execute PHP script
         exec(`php jimmini-api-electron.php "${tempFile}"`, (error, stdout, stderr) => {
+            // Stop thinking animation
+            if (floatingIcon && !floatingIcon.isDestroyed()) {
+                floatingIcon.webContents.send('stop-thinking');
+            }
+            
             if (error) {
                 res.json({ success: false, error: stderr || error.message });
                 return;
@@ -84,6 +94,11 @@ function createFloatingIcon() {
 function createChatWindow() {
     // If chat window exists and is visible, close it (toggle off)
     if (chatWindow && chatWindow.isVisible()) {
+        // Notify floating icon that chat is closing (regret animation)
+        if (floatingIcon && !floatingIcon.isDestroyed()) {
+            floatingIcon.webContents.send('chat-closed');
+        }
+        
         chatWindow.close();
         chatWindow = null;
         return;
@@ -94,6 +109,11 @@ function createChatWindow() {
         if (chatWindow.isMinimized()) chatWindow.restore();
         chatWindow.show();
         chatWindow.focus();
+        
+        // Notify floating icon that chat opened
+        if (floatingIcon && !floatingIcon.isDestroyed()) {
+            floatingIcon.webContents.send('chat-opened');
+        }
         return;
     }
 
@@ -118,8 +138,17 @@ function createChatWindow() {
 
     chatWindow.loadURL('http://localhost:8000/jimmini-chat.html');
 
+    // Notify floating icon that chat opened
+    if (floatingIcon && !floatingIcon.isDestroyed()) {
+        floatingIcon.webContents.send('chat-opened');
+    }
+
     // Handle window close
     chatWindow.on('close', () => {
+        // Notify floating icon that chat is closing (regret animation)
+        if (floatingIcon && !floatingIcon.isDestroyed()) {
+            floatingIcon.webContents.send('chat-closed');
+        }
         chatWindow = null;
     });
 }
@@ -141,9 +170,15 @@ app.whenReady().then(() => {
     startServer();
     createFloatingIcon();
 
-    // Listen for open-chat event from floating icon
+    // Listen for IPC events from floating icon
     const { ipcMain } = require('electron');
+    
+    // Handle both old 'open-chat' and new 'toggle-chat' events
     ipcMain.on('open-chat', () => {
+        createChatWindow();
+    });
+    
+    ipcMain.on('toggle-chat', () => {
         createChatWindow();
     });
 
