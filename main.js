@@ -56,7 +56,7 @@ function createFloatingIcon() {
 
     // POSITION SETTINGS - Adjust these values to change icon position
     const iconRightOffset = 200;  // Distance from right edge (decrease to move right, increase to move left)
-    const iconBottomOffset = 125; // Distance from bottom edge (decrease to move down, increase to move up)
+    const iconBottomOffset = 180; // Distance from bottom edge (decrease to move down, increase to move up)
 
     floatingIcon = new BrowserWindow({
         width: 150,
